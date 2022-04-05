@@ -1,11 +1,14 @@
 const valid = require('email-validator')
+const forumUserDb = require('../models/forumUserSchema')
 
 module.exports = {
     validateRegistration: async (req, res, next) => {
         const {name, email, pass1, pass2} = req.body
-        if (!valid.validate(email)){
-            return res.send({ success: false, message: "Email is not valid"})
-        }
+        if (!valid.validate(email)) return res.send({ success: false, message: "Email is not valid"})
+        const emailExist = await forumUserDb.findOne({ email })
+        if (emailExist) return res.send({ success: false, message: "Email already used" })
+        const userExists = await forumUserDb.findOne({ username: name })
+        if (userExists) return res.send({ success: false, message: "Username is taken" })
         if (name.length < 4 || name.length > 10){
             return res.send({success: false, message: "Name is too long or too short"})
         }

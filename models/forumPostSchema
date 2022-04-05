@@ -22,6 +22,11 @@ const forumPostSchema = new Schema({
     isRead: {
         type: Boolean,
         require: true
+    },
+    commentCounter: {
+        type: Number,
+        default: 0,
+        required: true
     }
 })
 

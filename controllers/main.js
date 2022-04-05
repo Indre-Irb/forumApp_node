@@ -46,6 +46,7 @@ module.exports = {
         const {topic} = req.body
         const {user} = req.session
         if (user) {
+            await forumUserDb.findOneAndUpdate({_id: user._id}, {$inc: {postCount: 1}}, {new: true})
             const newTopic = new forumPostDb()
             newTopic.username = user.username
             newTopic.post = topic
@@ -91,15 +92,13 @@ module.exports = {
         const linkText = data.comment.replace(/(https?\:\/\/)?([^\.\s]+)?[^\.\s]+\.[^\s]+/gi, (media) => {
 
             if (videoValid.test(media)) {
-                const media1 =media.replace("watch?v=", "embed/")
-                // media.replace("watch?v=", "embed/")
-                console.log(media1)
-                return `<iframe src=${media1}></iframe>`
+                const media1 = media.replace("watch?v=", "embed/")
+                return `<br><iframe src=${media1}></iframe></br>`
             }
             if (imageValid.test(media)) {
-                return `<img src=${media} alt/>`
+                return `<br><img src=${media} alt/></br>`
             }
-            if(!imageValid.test(media) && !videoValid.test(media)) {
+            if (!imageValid.test(media) && !videoValid.test(media)) {
                 return `<a>${media}</a>`
             }
         })
@@ -107,16 +106,23 @@ module.exports = {
         if (user) {
             await forumPostDb.findOneAndUpdate(
                 {_id: data.postId},
-                {$set: {isRead: true}},
+                {$inc: {commentCounter: 1}},
                 {new: true}
             )
+            const postOwner = await forumPostDb.findOne({_id: data.postId})
+            if (user.username !== postOwner.username){
+                await forumPostDb.findOneAndUpdate(
+                    {_id: data.postId},
+                    {$set: {isRead: true}},
+                    {new: true}
+                )
+            }
 
-            const newReply = new forumCommentDb()
+                const newReply = new forumCommentDb()
             newReply.username = user.username
             newReply.postId = data.postId
             newReply.userId = user._id
             newReply.post = linkText
-            // newReply.post = data.comment
             newReply.time = new Date().toLocaleString('lt-LT')
 
             newReply.save().then(data => {
