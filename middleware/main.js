@@ -9,7 +9,7 @@ module.exports = {
         if (emailExist) return res.send({ success: false, message: "Email already used" })
         const userExists = await forumUserDb.findOne({ username: name })
         if (userExists) return res.send({ success: false, message: "Username is taken" })
-        if (name.length < 4 || name.length > 10){
+        if (name.length < 4 || name.length > 15){
             return res.send({success: false, message: "Name is too long or too short"})
         }
         if (pass1.length < 4 || pass1.length > 20) {
